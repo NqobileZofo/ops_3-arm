@@ -1,0 +1,94 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "functions": [],
+    "variables": {
+        "VNET": "virtualNetwork1",
+        "FrondEnd_Subnet": "Subnet-1",
+        "BackEnd_Subnet": "Subnet-2",
+        "DataBase_Subnet": "Subnet-3",
+
+        "VNET_addressPrefix": "192.168.0.0/16",
+        "FrontEnd_addressPrefix": "10.0.1.0/24",
+        "BackEnd_addressPrefix": "10.0.2.0/24",
+        "DataBase_addressPrefix": "10.0.3.0/24"
+    },
+    "resources": [
+        {
+            "name": "networkSecurityGroup1",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2023-04-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "Allow_HTTP",
+                        "properties": {
+                            "description": "Allow traffic on port 80 ",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "[variables('VNET_addressPrefix')]",
+                            "destinationAddressPrefix": "[variables('FrontEnd_addressPrefix')]",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Deny_SSH",
+                        "properties": {
+                            "description": "Deny traffic on port 22",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "[variables('VNET_addressPrefix')]",
+                            "destinationAddressPrefix": "[variables('FrontEnd_addressPrefix')]",
+                            "access": "Deny",
+                            "priority":200,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('VNET')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2023-04-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "virtualNetwork1"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('VNET_addressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('FrondEnd_Subnet')]",
+                        "properties": {
+                            "addressPrefix": "[variables('FrontEnd_addressPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('BackEnd_Subnet')]",
+                        "properties": {
+                            "addressPrefix": "[variables('BackEnd_addressPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('DataBase_Subnet')]",
+                        "properties": {
+                            "addressPrefix": "[variables('DataBase_addressPrefix')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}
